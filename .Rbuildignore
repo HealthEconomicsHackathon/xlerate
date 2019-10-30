@@ -1,0 +1,5 @@
+^Makefile$
+^\.travis\.yml$
+^TODO\.md$
+^README\.Rmd$
+^scripts$
