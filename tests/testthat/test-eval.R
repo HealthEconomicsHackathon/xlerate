@@ -21,3 +21,15 @@ test_that("consistency of calculations", {
   res <- compute(exprs, check = FALSE)
   expect_equal(res$A3, 3)
 })
+
+
+test_that("verbose", {
+  exprs <- list(A1 = list(value = 1, name = "A1"),
+                A2 = list(value = 2, name = "A2"),
+                A3 = list(value = 3, name = "A3",
+                          formula = quote(A1 + A2)))
+  expect_message(
+    compute(exprs, verbose = TRUE),
+    "A3: A1 + A2 => 3",
+    fixed = TRUE)
+})
