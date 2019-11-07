@@ -40,7 +40,7 @@ xlerate <- function(path, inputs, outputs, check = TRUE) {
     compute(obj$exprs, NULL, TRUE)
   }
 
-  ret <- function(x) {
+  ret <- function(x, verbose = FALSE) {
     if (length(x) == 0) {
       x <- NULL
     } else if (is.null(names(x))) {
@@ -51,7 +51,7 @@ xlerate <- function(path, inputs, outputs, check = TRUE) {
       stopifnot(!any(is.na(i)))
       names(x) <- inputs$cells$name[i]
     }
-    res <- compute(obj$exprs, x, FALSE)
+    res <- compute(obj$exprs, x, FALSE, verbose)
     vnapply(obj$outputs, get0, res)
   }
 

@@ -5,11 +5,39 @@ RE_REF_SHEET <-  "(.*)!.*"
 ## cell references into valid R variables first.  That's needed for
 ## the cases that are references into other sheets.
 parse_formula <- function(x) {
+  if (identical(x, NA) || identical(x, "") || identical(x, NA_character_)) {
+    return(NULL)
+  }
   ## TODO: this is not enough - we should do this much better and as
   ## it is it will not cope with absolute references
   stopifnot(length(x) == 1)
+  x <- gsub("$", "", x, fixed = TRUE)
   x <- gsub(RE_REF, "`\\1`", x)
-  parse(text = x)[[1]]
+  expr <- parse(text = x)[[1]]
+
+  if (":" %in% all.names(expr)) {
+    expr <- rewrite_ranges(expr)
+  }
+
+  expr
+}
+
+
+rewrite_ranges <- function(expr) {
+  if (is.recursive(expr)) {
+    if (identical(expr[[1]], quote(`:`))) {
+      range <- sprintf("%s:%s", deparse(expr[[2]]), deparse(expr[[3]]))
+      limits <- cellranger::as.cell_limits(range)
+      row <- limits$ul[[1]]:limits$lr[[1]]
+      col <- cellranger::num_to_letter(limits$ul[[2]]:limits$lr[[2]])
+      cells <- expand.grid(row = row, col = col, stringsAsFactors = FALSE)
+      expr <- as.call(c(list(quote(c)),
+                        lapply(paste0(cells$col, cells$row), as.name)))
+    } else {
+      expr[] <- lapply(expr, rewrite_ranges)
+    }
+  }
+  expr
 }
 
 
@@ -58,9 +86,7 @@ process <- function(outputs, w) {
 
     s <- w$sheets[[x$sheet]]
     f <- parse_formula(s$cells$formula[s$lookup[x$row, x$col]])
-    if (identical(f, NA)) {
-      f <- NULL
-    }
+
     value <- s$cells$value[s$lookup[x$row, x$col]]
     stopifnot(length(value) == 1)
 

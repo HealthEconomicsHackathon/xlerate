@@ -10,6 +10,7 @@ na_zero <- function(x) {
 
 EXCEL <- new.env(parent = emptyenv())
 EXCEL$`(` <- `(`
+EXCEL$`c` <- `c`
 
 
 EXCEL$`+` <- function(a, b) {
@@ -38,7 +39,13 @@ EXCEL$`/` <- function(a, b) {
 }
 
 
-compute <- function(exprs, inputs = NULL, check = FALSE) {
+EXCEL$`SUM` <- function(...) {
+  args <- list(...)
+  sum(unlist(args, FALSE, FALSE))
+}
+
+
+compute <- function(exprs, inputs = NULL, check = FALSE, verbose = FALSE) {
   state <- new.env(parent = EXCEL)
   if (!is.null(inputs)) {
     check <- FALSE
@@ -49,10 +56,14 @@ compute <- function(exprs, inputs = NULL, check = FALSE) {
     if (is.null(x$formula)) {
       state[[x$name]] <- x$value
     } else {
-      state[[x$name]] <- eval(x$formula, state)
-      if (check && !isTRUE(all.equal(x$value, state[[x$name]]))) {
+      value <- eval(x$formula, state)
+      if (check && !isTRUE(all.equal(x$value, value))) {
         stop("Found inconsistency in calculation computing ", x$name)
       }
+      if (verbose) {
+        message(sprintf("%s: %s => %s", x$name, deparse(x$formula), value))
+      }
+      state[[x$name]] <- value
     }
   }
   state

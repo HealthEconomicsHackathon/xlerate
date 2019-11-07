@@ -22,3 +22,17 @@ test_that("Example works", {
 
   expect_output(print(tree), "<an xlerate object>")
 })
+
+
+test_that("markov example", {
+  path <- xlerate_file("example/markov.xlsx")
+  inputs <- xlerate_ref("B1:B10", 1, list(col = -1))
+  outputs <- xlerate_ref(c("I25", "O24", "U25", "AA24"), 1, list(col = -1))
+  markov <- xlerate(path, inputs, outputs)
+
+  res1 <- markov(NULL)
+  res2 <- markov(c("Prob state 1 >2" = 0.1))
+
+  expect_equal(res1[["Lif years standard"]], 1021.06401534845)
+  expect_equal(res2[["Lif years standard"]], 1028.93901534845)
+})
