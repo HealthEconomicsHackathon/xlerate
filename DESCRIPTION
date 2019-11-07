@@ -12,6 +12,9 @@ Description: Attempt to translate Excel to R.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Imports:
+    cellranger,
+    rexcel
 Suggests:
     testthat
 RoxygenNote: 6.1.1
