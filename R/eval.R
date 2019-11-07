@@ -38,8 +38,13 @@ EXCEL$`/` <- function(a, b) {
 }
 
 
-compute <- function(exprs, check = TRUE) {
+compute <- function(exprs, inputs = NULL, check = FALSE) {
   state <- new.env(parent = EXCEL)
+  if (!is.null(inputs)) {
+    check <- FALSE
+    list2env(as.list(inputs), state)
+    exprs <- exprs[!(names(exprs) %in% names(inputs))]
+  }
   for (x in exprs) {
     if (is.null(x$formula)) {
       state[[x$name]] <- x$value
@@ -51,4 +56,13 @@ compute <- function(exprs, check = TRUE) {
     }
   }
   state
+}
+
+
+## Doing the simplification here will be hard because we don't have a
+## nice way of shaping the outputs, but that will be required more
+## generally.
+run <- function(obj, check = TRUE) {
+  res <- compute(obj$exprs, check)
+  vapply(obj$outputs, get0, numeric(1), res)
 }

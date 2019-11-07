@@ -15,7 +15,12 @@ parse_formula <- function(x) {
 
 cell_ref <- function(ref, w, default, check_range = FALSE) {
   if (check_range && any(grepl(":", ref))) {
-    stop("need to expand ranges here")
+    ## TODO: this is a hack, and has the bad effect of losing the
+    ## shape of the references
+    r <- ranges_to_coords(ref)
+    ref <- paste0(cellranger::num_to_letter(r$col), r$row)
+    i <- !is.na(r$sheet)
+    ref[i] <- sprintf("%s!%s", r$sheet[i], ref)
   }
   addr <- cellranger::as.cell_addr_v(ref, strict = FALSE)
   ret <- data.frame(row = addr$row, col = addr$col)
@@ -32,17 +37,19 @@ cell_ref <- function(ref, w, default, check_range = FALSE) {
   }
 
   ret$name <- sprintf("s%d.%s", ret$sheet, ret$ref)
+  ret$name_excel <- ret$ref
 
   ret
 }
 
 
-process <- function(outputs, sheet, w) {
+process <- function(outputs, w) {
   seen <- character(0)
   exprs <- list()
 
-  traverse <- cell_ref(outputs, w, 2, check_range = TRUE)
-  traverse <- traverse[!duplicated(traverse$name), , drop = FALSE]
+  output_names <- setNames(outputs$name, outputs$label)
+  traverse <- outputs[!duplicated(outputs$name), , drop = FALSE]
+  traverse$label <- NULL
 
   while (nrow(traverse) > 0) {
     x <- as.list(traverse[1, ])
@@ -75,7 +82,8 @@ process <- function(outputs, sheet, w) {
   }
 
   i <- topological_order(lapply(exprs, function(x) x$deps$name))
-  exprs[i]
+  list(exprs = exprs[i],
+       outputs = output_names)
 }
 
 
@@ -116,9 +124,9 @@ topological_order <- function(graph) {
 
 range_to_coords <- function(x) {
   r <- cellranger::as.cell_limits(x)
-  row <- r[[1]][2]:r[[2]][2]
-  col <- r[[1]][1]:r[[2]][1]
-  data.frame(row = row, col = col)
+  row <- r[[1]][1]:r[[2]][1]
+  col <- r[[1]][2]:r[[2]][2]
+  data.frame(row = row, col = col, sheet = r$sheet)
 }
 
 
