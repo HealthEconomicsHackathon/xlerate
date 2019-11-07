@@ -16,3 +16,9 @@ vnapply <- function(X, FUN, ...) {
 xlerate_file <- function(name) {
   system.file(name, package = "xlerate", mustWork = TRUE)
 }
+
+
+set_names <- function(x, nms) {
+  names(x) <- nms
+  x
+}

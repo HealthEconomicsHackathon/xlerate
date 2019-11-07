@@ -47,7 +47,7 @@ process <- function(outputs, w) {
   seen <- character(0)
   exprs <- list()
 
-  output_names <- setNames(outputs$name, outputs$label)
+  output_names <- set_names(outputs$name, outputs$label)
   traverse <- outputs[!duplicated(outputs$name), , drop = FALSE]
   traverse$label <- NULL
 
@@ -67,7 +67,7 @@ process <- function(outputs, w) {
     vars <- all.vars(f)
     if (length(vars) > 0L) {
       deps <- cell_ref(vars, w, x$sheet)
-      subs <- setNames(lapply(deps$name, as.name), vars)
+      subs <- set_names(lapply(deps$name, as.name), vars)
       f <- substitute_(f, subs)
 
       extra <- deps[!(deps$name %in% seen), , drop = FALSE]
@@ -78,7 +78,7 @@ process <- function(outputs, w) {
       deps <- NULL
     }
     res <- c(x, list(formula = f, value = value[[1]], deps = deps))
-    exprs <- c(exprs, setNames(list(res), x$name))
+    exprs <- c(exprs, set_names(list(res), x$name))
   }
 
   i <- topological_order(lapply(exprs, function(x) x$deps$name))

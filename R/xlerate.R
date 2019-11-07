@@ -56,7 +56,7 @@ xlerate <- function(path, inputs, outputs, check = TRUE) {
   }
 
   input_values <- cell_value(inputs$cells, w)
-  attr(ret, "input") <- setNames(input_values, inputs$cells$label)
+  attr(ret, "input") <- set_names(input_values, inputs$cells$label)
   class(ret) <- c("xlerate", "function")
 
   ret
