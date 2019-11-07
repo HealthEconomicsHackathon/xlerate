@@ -57,6 +57,25 @@ tree(c("pTST_pos" = 0.01))
 ##    0.00000
 ```
 
+Another [example, this time a Markov model](inst/example/markov.xlsx)
+
+
+```r
+path <- system.file("example/markov.xlsx", package = "xlerate")
+inputs <- xlerate::xlerate_ref("B1:B10", 1, list(col = -1))
+outputs <- xlerate::xlerate_ref(c("I25", "O24", "U25", "AA24"),
+                                1, list(col = -1))
+markov <- xlerate::xlerate(path, inputs, outputs)
+markov(c("Prob state 1 >2" = 0.1))
+```
+
+```
+##        Lif years standard            Costs standard
+##                  1028.939                 51128.995
+## TOTAL life years standard           costs treatment
+##                  1239.347                 49493.663
+```
+
 ## License
 
 MIT © Imperial College of Science, Technology and Medicine
