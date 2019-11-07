@@ -13,7 +13,10 @@ parse_formula <- function(x) {
 }
 
 
-cell_ref <- function(ref, w, default) {
+cell_ref <- function(ref, w, default, check_range = FALSE) {
+  if (check_range && any(grepl(":", ref))) {
+    stop("need to expand ranges here")
+  }
   addr <- cellranger::as.cell_addr_v(ref, strict = FALSE)
   ret <- data.frame(row = addr$row, col = addr$col)
   ret$sheet <- rep(default, length(ref))
@@ -34,26 +37,17 @@ cell_ref <- function(ref, w, default) {
 }
 
 
-process <- function(ref, sheet, path) {
-  w <- rexcel::rexcel_read_workbook(path, progress = FALSE)
-  sheet <- 2L
-  seen <- lapply(w$sheets, function(x) array(FALSE, dim(x$lookup2)))
-
-  traverse <- list(list(sheet = sheet, ref = ref))
+process <- function(outputs, sheet, w) {
+  seen <- character(0)
   exprs <- list()
 
-  while (length(traverse) > 0) {
-    this <- traverse[[1]]
-    traverse <- traverse[-1]
+  traverse <- cell_ref(outputs, w, 2, check_range = TRUE)
+  traverse <- traverse[!duplicated(traverse$name), , drop = FALSE]
 
-    ref <- this$ref
-    sheet <- this$sheet
-
-    x <- cell_ref(ref, w, sheet)
-    if (seen[[x$sheet]][x$row, x$col]) {
-      next
-    }
-    seen[[x$sheet]][x$row, x$col] <- TRUE
+  while (nrow(traverse) > 0) {
+    x <- as.list(traverse[1, ])
+    traverse <- traverse[-1, , drop = FALSE]
+    seen <- c(seen, x$name)
 
     s <- w$sheets[[x$sheet]]
     f <- parse_formula(s$cells$formula[s$lookup[x$row, x$col]])
@@ -68,11 +62,10 @@ process <- function(ref, sheet, path) {
       deps <- cell_ref(vars, w, x$sheet)
       subs <- setNames(lapply(deps$name, as.name), vars)
       f <- substitute_(f, subs)
-      for (v in split(deps, deps$sheet)) {
-        s <- v$sheet[[1]]
-        extra <- vars[!seen[[s]][cbind(v$row, v$col)]]
-        traverse <- c(traverse,
-                      Map(list, ref = extra, sheet = rep(s, length(extra))))
+
+      extra <- deps[!(deps$name %in% seen), , drop = FALSE]
+      if (nrow(extra) > 0L) {
+        traverse <- rbind(traverse, extra)
       }
     } else {
       deps <- NULL
@@ -118,4 +111,17 @@ topological_order <- function(graph) {
   }
 
   names(graph)[graph_sorted]
+}
+
+
+range_to_coords <- function(x) {
+  r <- cellranger::as.cell_limits(x)
+  row <- r[[1]][2]:r[[2]][2]
+  col <- r[[1]][1]:r[[2]][1]
+  data.frame(row = row, col = col)
+}
+
+
+ranges_to_coords <- function(x) {
+  do.call("rbind", lapply(x, range_to_coords))
 }
