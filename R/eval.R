@@ -51,18 +51,9 @@ compute <- function(exprs, inputs = NULL, check = FALSE) {
     } else {
       state[[x$name]] <- eval(x$formula, state)
       if (check && !isTRUE(all.equal(x$value, state[[x$name]]))) {
-        stop("Found inconsistency in calculation")
+        stop("Found inconsistency in calculation computing ", x$name)
       }
     }
   }
   state
-}
-
-
-## Doing the simplification here will be hard because we don't have a
-## nice way of shaping the outputs, but that will be required more
-## generally.
-run <- function(obj, check = TRUE) {
-  res <- compute(obj$exprs, check)
-  vapply(obj$outputs, get0, numeric(1), res)
 }

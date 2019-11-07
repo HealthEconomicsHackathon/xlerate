@@ -13,6 +13,6 @@ vnapply <- function(X, FUN, ...) {
 }
 
 
-vcapply <- function(X, FUN, ...) {
-  vapply(X, FUN, character(1), ...)
+xlerate_file <- function(name) {
+  system.file(name, package = "xlerate", mustWork = TRUE)
 }

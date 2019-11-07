@@ -101,21 +101,12 @@ topological_order <- function(graph) {
   graph_sorted <- integer(0)
   while (any(pending)) {
     i <- which(pending)[colSums(m[, pending, drop = FALSE]) == 0]
-    if (length(i) > 0L) {
-      graph_sorted <- c(graph_sorted, i)
-      pending[i] <- FALSE
-      m[i, ] <- FALSE
-    } else {
-      f <- function(i) {
-        sprintf("\t%s: depends on %s",
-                names(graph)[[i]], paste(err[m[pending, i]], collapse = ", "))
-      }
-      err <- names(graph)[pending]
-      detail <- paste(vcapply(which(pending), f), collapse = "\n")
-      stop(sprintf("A cyclic dependency detected for %s:\n%s",
-                   paste(names(graph)[pending], collapse = ", "),
-                   detail), call. = FALSE)
-    }
+    ## TODO: this is a terrible way of dealing with circular refs but
+    ## they should not happen:
+    stopifnot(length(i) > 0L)
+    graph_sorted <- c(graph_sorted, i)
+    pending[i] <- FALSE
+    m[i, ] <- FALSE
   }
 
   names(graph)[graph_sorted]
