@@ -19,4 +19,6 @@ test_that("Example works", {
   x <- vnapply(attr(tree, "input"), identity, USE.NAMES = FALSE)
   expect_identical(tree(x), res1)
   expect_identical(tree(c(0.01, x[-1])), res2)
+
+  expect_output(print(tree), "<an xlerate object>")
 })

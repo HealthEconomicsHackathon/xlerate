@@ -1,8 +1,31 @@
-xlerate_ref <- function(ref, sheet, label) {
+##' Create a reference to inputs or outputs
+##' @title Create a reference to inputs or outputs
+##'
+##' @param ref A character vector of cell references (can be ranges)
+##'
+##' @param sheet The sheet number to be used wherever a non-sheet
+##'   scoped reference is used.
+##'
+##' @param label Optional list of row/column offsets to locate labels
+##' @export
+xlerate_ref <- function(ref, sheet, label = NULL) {
   list(ref = ref, sheet = sheet, label = label)
 }
 
 
+##' Create a function from an excel workbook
+##' @title Create a function from an excel workbook
+##'
+##' @param path Path to the xlsx file
+##'
+##' @param inputs A \code{\link{xlerate_ref}} object with input references
+##'
+##' @param outputs  A \code{\link{xlerate_ref}} object with output references
+##'
+##' @param check Logical, indicating if the workbook should be
+##'   recomputed to check that we agree with Excel
+##'
+##' @export
 xlerate <- function(path, inputs, outputs, check = TRUE) {
   w <- rexcel::rexcel_read_workbook(path, progress = FALSE)
 
@@ -37,6 +60,13 @@ xlerate <- function(path, inputs, outputs, check = TRUE) {
   class(ret) <- c("xlerate", "function")
 
   ret
+}
+
+
+##' @export
+print.xlerate <- function(x, ...) {
+  cat("<an xlerate object>\n")
+  invisible(x)
 }
 
 
